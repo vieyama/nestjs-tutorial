@@ -1,6 +1,6 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { Prisma, User } from '@prisma/client';
-import { AuthDto } from 'src/auth/dto/auth.dto';
+import { AuthBody } from 'src/auth/dto/auth.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import {
   PaginateFunction,
@@ -27,7 +27,7 @@ export class UserService {
     );
   }
 
-  async getById(id: number) {
+  async getById(id: string) {
     const user = await this.prismaService.user.findFirst({
       where: {
         id,
@@ -63,7 +63,53 @@ export class UserService {
     );
   }
 
-  async createMany(createData: AuthDto[]) {
+  async findOne(id: string) {
+    try {
+      const res = await this.prismaService.user.findUnique({
+        where: {
+          id,
+        },
+      });
+
+      return { data: res, status: HttpStatus.OK };
+    } catch (error) {
+      console.log(error);
+      throw new HttpException('Something went wrong', HttpStatus.BAD_GATEWAY);
+    }
+  }
+
+  async update(id: string, updateUser: Prisma.UserUpdateInput) {
+    try {
+      const res = await this.prismaService.user.update({
+        where: {
+          id,
+        },
+        data: updateUser,
+      });
+      const { password, ...result } = res;
+      return { data: result, status: HttpStatus.OK };
+    } catch (error) {
+      console.log(error);
+      throw new HttpException('Something went wrong', HttpStatus.BAD_GATEWAY);
+    }
+  }
+
+  async remove(id: string) {
+    try {
+      await this.prismaService.user.delete({
+        where: {
+          id,
+        },
+      });
+
+      return { message: 'Data deleted', status: HttpStatus.OK };
+    } catch (error) {
+      console.log(error);
+      throw new HttpException('Something went wrong', HttpStatus.BAD_GATEWAY);
+    }
+  }
+
+  async createMany(createData: AuthBody[]) {
     try {
       const result = await this.prismaService.user.createMany({
         data: createData,

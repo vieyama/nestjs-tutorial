@@ -15,46 +15,237 @@ enum Role {
   SUPERADMIN
 }
 
+enum UserType {
+  ENGINEER
+  FOREMAN
+  CUSTOMER
+  SUPPLIER
+}
+
+enum ProductType {
+  MATERIAL
+  OIL
+  SPAREPART
+  SUBLET
+}
+
+enum PaymentMethod {
+  CASH
+  TRANSFER
+  DEBIT
+}
+
+enum PaymentStatus {
+  PAID
+  WAITING
+  DEB
+}
+
+enum StatusService {
+  QUEUE
+  PROGRESS
+  PENDING
+  CLOSE
+  QCPASSED
+  DONE
+}
+
+enum TransactionType {
+  EXTERNAL
+  INTERNAL
+  GUARANTEE
+}
+
 model User {
-  id        Int      @id @default(autoincrement())
+  id        String   @id @default(uuid())
   email     String?  @unique
   password  String?
+  name      String?
+  avatar    String?
   role      Role     @default(ADMIN)
-  profile   Profile?
   tokens    Token[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  profileId Int?
-  Post      Post?
 
   @@map("users")
 }
 
-model Profile {
-  id        Int    @id @default(autoincrement())
-  firstName String
-  lastName  String
-  address   String
-  user      User   @relation(fields: [userId], references: [id])
-  userId    Int    @unique
-}
-
-model Post {
-  id     Int    @id @default(autoincrement())
-  title  String
-  body   String
-  user   User   @relation(fields: [userId], references: [id])
-  userId Int    @unique
-}
-
 model Token {
   id           String   @id @default(uuid())
-  userId       Int
   refreshToken String
   expiresAt    DateTime
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+  userId       String
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("tokens")
+}
+
+model Engineer {
+  id           String         @id @unique @default(uuid())
+  name         String
+  address      String?
+  phone        String
+  bank_name    String?
+  bank_number  String?
+  SellServices SellServices[]
+}
+
+model Foreman {
+  id              String            @id @unique @default(uuid())
+  name            String
+  address         String?
+  phone           String
+  bank_name       String?
+  bank_number     String?
+  ServiceInvoices ServiceInvoices[]
+}
+
+model Supplier {
+  id          String     @id @unique @default(uuid())
+  name        String
+  address     String?
+  phone       String
+  company     String?
+  bank_name   String?
+  bank_number String?
+  Products    Products[]
+}
+
+model Customer {
+  id              String            @id @unique @default(uuid())
+  name            String
+  address         String?
+  phone           String
+  bank_name       String?
+  bank_number     String?
+  Car             Car[]
+  SellProducts    SellProducts[]
+  ServiceInvoices ServiceInvoices[]
+}
+
+model Setting {
+  id               String  @id @unique @default(uuid())
+  workshop_name    String
+  workshop_logo    String?
+  workshop_npwp    String?
+  workshop_address String
+  tax_services     Int?
+  tax_products     Int?
+}
+
+model Car {
+  id              String            @id @unique @default(uuid())
+  model           String
+  plat_number     String            @unique
+  color           String
+  mileage         BigInt?
+  chassis_number  BigInt?
+  engine_number   BigInt?
+  customer        Customer          @relation(fields: [customerId], references: [id])
+  customerId      String
+  ServiceInvoices ServiceInvoices[]
+}
+
+model Products {
+  id                String           @id @unique @default(uuid())
+  code              String           @unique
+  name              String
+  brand             String?
+  location          String
+  purchase_price    BigInt
+  selling_price     BigInt
+  product_type      ProductType
+  stock             BigInt
+  min_stock_alert   Int
+  supplier          Supplier         @relation(fields: [supplierId], references: [id])
+  supplierId        String
+  SellProducts      SellProducts[]
+  ServiceInvoices   ServiceInvoices? @relation(fields: [serviceInvoicesId], references: [id])
+  serviceInvoicesId String?
+}
+
+model Services {
+  id                String           @id @unique @default(uuid())
+  code              String           @unique
+  name              String
+  description       String?
+  cost              BigInt
+  engineer_payment  BigInt?
+  SellServices      SellServices[]
+  ServiceInvoices   ServiceInvoices? @relation(fields: [serviceInvoicesId], references: [id])
+  serviceInvoicesId String?
+}
+
+model SellProducts {
+  id                String           @id @unique @default(uuid())
+  qty               Int
+  selling_price     BigInt
+  is_guarantee      Boolean?         @default(false)
+  discount          BigInt?
+  product           Products         @relation(fields: [productId], references: [id])
+  productId         String
+  customer          Customer         @relation(fields: [customerId], references: [id])
+  customerId        String
+  product_invoices  ProductInvoices? @relation(fields: [productInvoicesId], references: [id])
+  productInvoicesId String?
+}
+
+model ProductInvoices {
+  id               String         @id @unique @default(uuid())
+  invoice_code     String         @unique
+  transaction_date DateTime?
+  payment_date     DateTime?
+  transfer_detail  String?
+  payment_method   PaymentMethod?
+  payment_status   PaymentStatus? @default(WAITING)
+  tax              Int?
+  paid_amount      BigInt?
+  paid_total       BigInt?
+  SellProducts     SellProducts[]
+}
+
+model SellServices {
+  id                String           @id @unique @default(uuid())
+  discount          BigInt?
+  cost              BigInt
+  total_cost        BigInt?
+  service_type      Services?        @relation(fields: [servicesId], references: [id])
+  servicesId        String?
+  engineer          Engineer?        @relation(fields: [engineerId], references: [id])
+  engineerId        String?
+  service_invoice   ServiceInvoices? @relation(fields: [serviceInvoicesId], references: [id])
+  serviceInvoicesId String?
+}
+
+model ServiceInvoices {
+  id                String           @id @unique @default(uuid())
+  invoice_code      String
+  date_in           DateTime?
+  date_out          DateTime?
+  request_job       Json?
+  car               Car?             @relation(fields: [carId], references: [id])
+  carId             String?
+  products          Products[]
+  services          Services[]
+  status            StatusService?   @default(QUEUE)
+  cost_service      BigInt?
+  cost_product      BigInt?
+  transaction_type  TransactionType?
+  tax               BigInt?
+  work_order_number String           @unique
+  transfer_detail   String?
+  payment_date      DateTime?
+  payment_method    PaymentMethod?   @default(CASH)
+  payment_status    PaymentStatus?   @default(WAITING)
+  stay              Boolean?         @default(false)
+  number_queue      Int?
+  paid_total        BigInt?
+  paid_amount       BigInt?
+  SellServices      SellServices[]
+  Foreman           Foreman?         @relation(fields: [foremanId], references: [id])
+  foremanId         String?
+  Customer          Customer?        @relation(fields: [customerId], references: [id])
+  customerId        String?
 }

@@ -5,7 +5,7 @@ import {
   Injectable,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { AuthDto } from './dto/auth.dto';
+import { AuthBody } from './dto/auth.dto';
 import * as argon from 'argon2';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
@@ -65,6 +65,8 @@ export class AuthService {
           id: user.id,
           email: user.email,
           role: user.role,
+          name: user.name,
+          avatar: user.avatar,
         },
       };
     } catch (error) {
@@ -72,7 +74,7 @@ export class AuthService {
     }
   }
 
-  async signUp(dto: AuthDto) {
+  async signUp(dto: AuthBody) {
     const password = await argon.hash(dto.password);
     try {
       const user = await this.prismaService.user.create({
@@ -92,7 +94,7 @@ export class AuthService {
     }
   }
 
-  async signIn(dto: AuthDto) {
+  async signIn(dto: AuthBody) {
     //find a user
     const user = await this.prismaService.user.findUnique({
       where: {
@@ -129,6 +131,9 @@ export class AuthService {
           id: tokenId,
         },
       });
+      return {
+        status: HttpStatus.OK,
+      };
     } catch (error) {
       throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST);
     }
@@ -185,7 +190,7 @@ export class AuthService {
     }
   }
 
-  public async getJwtRefreshToken(sub: number, email: string, role: string) {
+  public async getJwtRefreshToken(sub: string, email: string, role: string) {
     const payload: ITokenPayload = { sub, email, role };
     const refreshToken = await this.jwtService.signAsync(payload, {
       secret: process.env.JWT_REFRESH_TOKEN_SECRET,
@@ -197,7 +202,7 @@ export class AuthService {
   }
 
   async getJwtAccessToken(
-    sub: number,
+    sub: string,
     role: string,
     email: string,
     isSecondFactorAuthenticated = false,

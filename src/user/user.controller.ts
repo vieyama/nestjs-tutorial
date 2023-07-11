@@ -1,33 +1,37 @@
 import { RoleGuard } from 'src/auth/guards/roles.guard';
-import { Prisma, Role, User } from '@prisma/client';
-import { Body, Controller, Get, Post, Query, UseGuards } from '@nestjs/common';
-import { GetUser } from '../auth/decorator/get-user.decorator';
+import { Prisma, User } from '@prisma/client';
+import {
+  Body,
+  Controller,
+  Delete,
+  FileTypeValidator,
+  Get,
+  MaxFileSizeValidator,
+  Param,
+  ParseFilePipe,
+  Patch,
+  Post,
+  Query,
+  UploadedFile,
+  UseGuards,
+  UseInterceptors,
+} from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/guards/jwt.guard';
-import * as dayjs from 'dayjs';
-import { Roles } from 'src/auth/decorator/roles.decorator';
 import { UserService } from './user.service';
-import { AuthDto } from 'src/auth/dto/auth.dto';
-import * as argon from 'argon2';
 import { PaginatedResult } from 'src/utils/paginator';
+import * as argon from 'argon2';
+import { ApiBearerAuth } from '@nestjs/swagger';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { diskStorage } from 'multer';
 
+@ApiBearerAuth()
 @Controller('user')
+@UseGuards(JwtAuthGuard, RoleGuard)
 export class UserController {
   constructor(private userService: UserService) {}
-  @UseGuards(JwtAuthGuard)
-  @Get('me')
-  getMe(@GetUser() user: any) {
-    return (
-      'User-Id: ' +
-      user?.userId +
-      ' requested @ ' +
-      dayjs(Date.now()).format('hh:m:s a')
-    );
-  }
 
-  @UseGuards(JwtAuthGuard, RoleGuard)
-  @Get('list')
-  @Roles(Role.ADMIN)
-  getUsers(
+  @Get()
+  findAll(
     @Query('page') page?: number,
     @Query('searchString') searchString?: string,
     @Query('orderBy') orderBy?: string,
@@ -37,14 +41,17 @@ export class UserController {
     const or = searchString
       ? {
           OR: [
-            { email: { contains: searchString } },
-            { role: { contains: searchString } },
+            { name: { contains: searchString } },
+            { address: { contains: searchString } },
+            { phone: { contains: searchString } },
+            { bank_number: { contains: searchString } },
           ],
         }
       : {};
     const where = {
       ...or,
     };
+
     return this.userService.getAll({
       page,
       orderBy: { [orderBy]: sort } || { id: 'asc' },
@@ -53,18 +60,50 @@ export class UserController {
     });
   }
 
-  @UseGuards(JwtAuthGuard, RoleGuard)
-  @Post('bulk-insert')
-  @Roles(Role.ADMIN)
-  async bulkInsert(@Body() createUserBody: AuthDto[]) {
-    const password = await argon.hash('rahasia123');
-    const dataUser = createUserBody.map((item) => {
-      return {
-        ...item,
-        password,
-      };
-    });
+  @Post('upload/:user_id')
+  @UseInterceptors(
+    FileInterceptor('file', {
+      storage: diskStorage({
+        destination: 'public/img',
+        filename: (req, file, cb) => {
+          console.log(req.params.user_id);
 
-    return this.userService.createMany(dataUser);
+          cb(null, `${req.params.user_id}-${file.originalname}`);
+        },
+      }),
+    }),
+  )
+  async local(@UploadedFile() file: Express.Multer.File) {
+    return {
+      statusCode: 200,
+      data: file.path,
+    };
+  }
+
+  @Get(':id')
+  findOne(@Param('id') id: string) {
+    return this.userService.findOne(id);
+  }
+
+  @Patch(':id')
+  async update(
+    @Param('id') id: string,
+    @Body() userUpdate: Prisma.UserCreateInput,
+  ) {
+    console.log(userUpdate);
+
+    const password = userUpdate.password
+      ? await argon.hash(userUpdate.password)
+      : undefined;
+
+    return this.userService.update(id, {
+      ...userUpdate,
+      ...(password && { password }),
+    });
+  }
+
+  @Delete(':id')
+  remove(@Param('id') id: string) {
+    return this.userService.remove(id);
   }
 }
