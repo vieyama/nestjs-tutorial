@@ -1,5 +1,5 @@
 export interface ITokenPayload {
-  sub: number;
+  sub: string;
   email: string;
   role: string;
   isSecondFactorAuthenticated?: boolean;

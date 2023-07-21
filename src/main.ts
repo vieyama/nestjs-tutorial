@@ -1,11 +1,15 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-
+import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { ValidationPipe } from '@nestjs/common';
 import * as cookieParser from 'cookie-parser';
 
 async function bootstrap() {
-  const allowedOrigins = ['http://localhost:3000'];
+  const allowedOrigins = [
+    'http://localhost:3000',
+    'http://localhost:3001',
+    'http://localhost:8000/api',
+  ];
 
   const app = await NestFactory.create(AppModule);
 
@@ -26,6 +30,16 @@ async function bootstrap() {
     optionsSuccessStatus: 200,
     credentials: true,
   });
+
+  const config = new DocumentBuilder()
+    .addBearerAuth()
+    .setTitle('Bengkel.io APIs')
+    .setDescription('Bengkel.io API description')
+    .setVersion('0.1')
+    .build();
+
+  const document = SwaggerModule.createDocument(app, config);
+  SwaggerModule.setup('api', app, document);
 
   await app.listen(process.env.PORT || 4040);
 }
