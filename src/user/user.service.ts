@@ -119,4 +119,26 @@ export class UserService {
       throw new HttpException('Duplicate item', HttpStatus.BAD_REQUEST);
     }
   }
+
+  async create(createData: AuthBody) {
+    const user = await this.prismaService.user.findFirst({
+      where: {
+        email: createData.email,
+      },
+    });
+
+    if (user) {
+      throw new HttpException('Email already exist', HttpStatus.CONFLICT);
+    }
+    try {
+      const result = await this.prismaService.user.create({
+        data: createData,
+      });
+      const { password, ...dataResult } = result;
+      return dataResult;
+    } catch (error) {
+      console.log(error);
+      throw new HttpException('Something went wrong', HttpStatus.BAD_GATEWAY);
+    }
+  }
 }

@@ -43,8 +43,8 @@ export class CustomerService {
 
   async findAll(params: {
     page?: number;
-    orderBy?: Prisma.UserOrderByWithRelationInput;
-    where?: Prisma.UserWhereInput;
+    orderBy?: Prisma.CustomerOrderByWithRelationInput;
+    where?: Prisma.CustomerWhereInput;
     perPage?: number;
     include?: object;
   }): Promise<PaginatedResult<Customer>> {

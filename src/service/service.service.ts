@@ -1,6 +1,6 @@
-import { Injectable, HttpStatus, HttpException } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { Prisma, Services } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { Engineer, Prisma } from '@prisma/client';
 import {
   PaginateFunction,
   PaginatedResult,
@@ -8,13 +8,23 @@ import {
 } from 'src/utils/paginator';
 
 @Injectable()
-export class EngineerService {
+export class ServicesService {
   constructor(private readonly prismaService: PrismaService) {}
 
-  async create(createEngineer: Prisma.EngineerCreateInput) {
+  async create(createService: Prisma.ServicesCreateInput) {
+    const product = await this.prismaService.services.findUnique({
+      where: {
+        code: createService.code,
+      },
+    });
+
+    if (product) {
+      throw new HttpException('Code already exist', HttpStatus.CONFLICT);
+    }
+
     try {
-      const create = await this.prismaService.engineer.create({
-        data: createEngineer,
+      const create = await this.prismaService.services.create({
+        data: createService,
       });
       return {
         data: create,
@@ -26,34 +36,36 @@ export class EngineerService {
     }
   }
 
-  async createMany(createEngineers: Prisma.EngineerCreateInput[]) {
+  async createMany(createServices: Prisma.ServicesCreateManyInput[]) {
     try {
-      const create = await this.prismaService.engineer.createMany({
-        data: createEngineers,
+      const create = await this.prismaService.services.createMany({
+        data: createServices,
         skipDuplicates: true,
       });
       return {
-        message: `Success insert ${create.count} of ${createEngineers.length} engineers`,
+        message: `Success insert ${create.count} of ${createServices.length} services`,
         status: HttpStatus.OK,
       };
     } catch (error) {
+      console.log(error);
+
       throw new HttpException('Something went wrong', HttpStatus.BAD_GATEWAY);
     }
   }
 
   async findAll(params: {
     page?: number;
-    orderBy?: Prisma.EngineerOrderByWithRelationInput;
-    where?: Prisma.EngineerWhereInput;
+    orderBy?: Prisma.ServicesOrderByWithRelationInput;
+    where?: Prisma.ServicesWhereInput;
     perPage?: number;
     include?: object;
-  }): Promise<PaginatedResult<Engineer>> {
+  }): Promise<PaginatedResult<Services>> {
     const { page, where, orderBy, perPage, include } = params;
 
     const paginate: PaginateFunction = paginator({ perPage: perPage || 10 });
 
     return paginate(
-      this.prismaService.engineer,
+      this.prismaService.services,
       {
         where,
         orderBy,
@@ -67,7 +79,7 @@ export class EngineerService {
 
   async findOne(id: string) {
     try {
-      const res = await this.prismaService.engineer.findUnique({
+      const res = await this.prismaService.services.findUnique({
         where: {
           id,
         },
@@ -80,13 +92,13 @@ export class EngineerService {
     }
   }
 
-  async update(id: string, updateEngineer: Prisma.EngineerUpdateInput) {
+  async update(id: string, updateService: Prisma.ServicesUpdateInput) {
     try {
-      const res = await this.prismaService.engineer.update({
+      const res = await this.prismaService.services.update({
         where: {
           id,
         },
-        data: updateEngineer,
+        data: updateService,
       });
 
       return { data: res, status: HttpStatus.OK };
@@ -98,7 +110,7 @@ export class EngineerService {
 
   async remove(id: string) {
     try {
-      await this.prismaService.engineer.delete({
+      await this.prismaService.services.delete({
         where: {
           id,
         },

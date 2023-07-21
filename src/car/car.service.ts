@@ -1,6 +1,6 @@
 import { Injectable, HttpStatus, HttpException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { Engineer, Prisma } from '@prisma/client';
+import { Car, Prisma } from '@prisma/client';
 import {
   PaginateFunction,
   PaginatedResult,
@@ -8,16 +8,24 @@ import {
 } from 'src/utils/paginator';
 
 @Injectable()
-export class EngineerService {
+export class CarService {
   constructor(private readonly prismaService: PrismaService) {}
 
-  async create(createEngineer: Prisma.EngineerCreateInput) {
+  async create(createCar: Prisma.CarCreateInput) {
     try {
-      const create = await this.prismaService.engineer.create({
-        data: createEngineer,
+      const create = await this.prismaService.car.create({
+        data: createCar,
       });
+
+      const data = await this.prismaService.car.findUnique({
+        where: { id: create.id },
+        include: {
+          customer: true,
+        },
+      });
+
       return {
-        data: create,
+        data: data,
         status: HttpStatus.OK,
       };
     } catch (error) {
@@ -26,14 +34,14 @@ export class EngineerService {
     }
   }
 
-  async createMany(createEngineers: Prisma.EngineerCreateInput[]) {
+  async createMany(createCars: Prisma.CarCreateManyInput[]) {
     try {
-      const create = await this.prismaService.engineer.createMany({
-        data: createEngineers,
+      const create = await this.prismaService.car.createMany({
+        data: createCars,
         skipDuplicates: true,
       });
       return {
-        message: `Success insert ${create.count} of ${createEngineers.length} engineers`,
+        message: `Success insert ${create.count} of ${createCars.length} cars`,
         status: HttpStatus.OK,
       };
     } catch (error) {
@@ -43,17 +51,17 @@ export class EngineerService {
 
   async findAll(params: {
     page?: number;
-    orderBy?: Prisma.EngineerOrderByWithRelationInput;
-    where?: Prisma.EngineerWhereInput;
+    orderBy?: Prisma.CarOrderByWithRelationInput;
+    where?: Prisma.CarWhereInput;
     perPage?: number;
     include?: object;
-  }): Promise<PaginatedResult<Engineer>> {
+  }): Promise<PaginatedResult<Car>> {
     const { page, where, orderBy, perPage, include } = params;
 
     const paginate: PaginateFunction = paginator({ perPage: perPage || 10 });
 
     return paginate(
-      this.prismaService.engineer,
+      this.prismaService.car,
       {
         where,
         orderBy,
@@ -65,9 +73,9 @@ export class EngineerService {
     );
   }
 
-  async findOne(id: string) {
+  async findById(id: string) {
     try {
-      const res = await this.prismaService.engineer.findUnique({
+      const res = await this.prismaService.car.findUnique({
         where: {
           id,
         },
@@ -80,13 +88,31 @@ export class EngineerService {
     }
   }
 
-  async update(id: string, updateEngineer: Prisma.EngineerUpdateInput) {
+  async findByCustomerId(id: string) {
     try {
-      const res = await this.prismaService.engineer.update({
+      const res = await this.prismaService.car.findMany({
+        where: {
+          customerId: id,
+        },
+        orderBy: {
+          id: 'desc',
+        },
+      });
+
+      return { data: res, status: HttpStatus.OK };
+    } catch (error) {
+      console.log(error);
+      throw new HttpException('Something went wrong', HttpStatus.BAD_GATEWAY);
+    }
+  }
+
+  async update(id: string, updateCar: Prisma.CarUpdateInput) {
+    try {
+      const res = await this.prismaService.car.update({
         where: {
           id,
         },
-        data: updateEngineer,
+        data: updateCar,
       });
 
       return { data: res, status: HttpStatus.OK };
@@ -98,7 +124,7 @@ export class EngineerService {
 
   async remove(id: string) {
     try {
-      await this.prismaService.engineer.delete({
+      await this.prismaService.car.delete({
         where: {
           id,
         },

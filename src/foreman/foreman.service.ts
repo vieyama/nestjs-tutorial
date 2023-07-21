@@ -43,8 +43,8 @@ export class ForemanService {
 
   async findAll(params: {
     page?: number;
-    orderBy?: Prisma.UserOrderByWithRelationInput;
-    where?: Prisma.UserWhereInput;
+    orderBy?: Prisma.ForemanOrderByWithRelationInput;
+    where?: Prisma.ForemanWhereInput;
     perPage?: number;
     include?: object;
   }): Promise<PaginatedResult<Foreman>> {

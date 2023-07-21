@@ -61,7 +61,7 @@ export class CustomerController {
 
     return this.customerService.findAll({
       page,
-      orderBy: { [orderBy]: sort } || { id: 'asc' },
+      orderBy: orderBy ? { [orderBy]: sort } : { createdAt: 'desc' },
       where: where as Prisma.CustomerWhereInput,
       perPage,
       include,

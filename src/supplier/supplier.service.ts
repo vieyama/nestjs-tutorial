@@ -43,8 +43,8 @@ export class SupplierService {
 
   async findAll(params: {
     page?: number;
-    orderBy?: Prisma.UserOrderByWithRelationInput;
-    where?: Prisma.UserWhereInput;
+    orderBy?: Prisma.SupplierOrderByWithRelationInput;
+    where?: Prisma.SupplierWhereInput;
     perPage?: number;
     include?: object;
   }): Promise<PaginatedResult<Supplier>> {

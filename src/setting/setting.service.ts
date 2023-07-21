@@ -24,7 +24,6 @@ export class SettingService {
   async findAll() {
     try {
       const res = await this.prismaService.setting.findMany();
-      console.log(res);
 
       return { data: res, status: HttpStatus.OK };
     } catch (error) {
@@ -40,7 +39,6 @@ export class SettingService {
           id,
         },
       });
-      console.log(res);
 
       return { data: res, status: HttpStatus.OK };
     } catch (error) {

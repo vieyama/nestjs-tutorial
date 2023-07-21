@@ -1,3 +1,5 @@
+import { omit } from 'lodash';
+
 export interface PaginatedResult<T> {
   data: T[];
   meta: {
@@ -14,6 +16,7 @@ export type PaginateOptions = {
   page?: number | string;
   perPage?: number | string;
   include?: object;
+  select?: object;
 };
 export type PaginateFunction = <T, K>(
   model: any,
@@ -28,21 +31,33 @@ export const paginator = (
     const page = Number(options?.page || defaultOptions?.page) || 1;
     const perPage = Number(options?.perPage || defaultOptions?.perPage) || 10;
     const include = options?.include;
+    const select = options?.select;
 
     const skip = page > 0 ? perPage * (page - 1) : 0;
+
     const [total, data] = await Promise.all([
       model.count({ where: args.where }),
       model.findMany({
         ...args,
         ...(include && { include }),
+        ...(select && { select }),
+        where: args.where,
         take: perPage,
         skip,
       }),
     ]);
     const lastPage = Math.ceil(total / perPage);
 
+    let result = data;
+
+    if (model.name === 'User') {
+      result = data.map((item) => {
+        return omit(item, 'password');
+      });
+    }
+
     return {
-      data,
+      data: result,
       meta: {
         total,
         lastPage,

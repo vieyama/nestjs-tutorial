@@ -59,7 +59,7 @@ export class EngineerController {
 
     return this.engineerService.findAll({
       page,
-      orderBy: { [orderBy]: sort } || { id: 'asc' },
+      orderBy: orderBy ? { [orderBy]: sort } : { createdAt: 'desc' },
       where: where as Prisma.EngineerWhereInput,
       perPage,
       include,

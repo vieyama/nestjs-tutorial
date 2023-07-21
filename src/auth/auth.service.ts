@@ -104,7 +104,7 @@ export class AuthService {
 
     //if the there is no user throw exception
     if (!user) {
-      throw new ForbiddenException('Credentials incorrect');
+      throw new ForbiddenException('User not found');
     }
 
     if (user.password == null) {
@@ -118,7 +118,7 @@ export class AuthService {
     const isMatch = await argon.verify(user.password, dto.password);
 
     if (!isMatch) {
-      throw new ForbiddenException('Credentilas incorrect');
+      throw new ForbiddenException('Password incorrect');
     }
 
     return await this.handeleSigin(user);

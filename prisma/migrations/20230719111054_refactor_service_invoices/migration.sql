@@ -1,35 +1,30 @@
-/*
-  Warnings:
+-- CreateTable
+CREATE TABLE `users` (
+    `id` VARCHAR(191) NOT NULL,
+    `email` VARCHAR(191) NULL,
+    `password` VARCHAR(191) NULL,
+    `role` ENUM('ADMIN', 'SUPERADMIN') NOT NULL DEFAULT 'ADMIN',
+    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `updatedAt` DATETIME(3) NOT NULL,
+    `avatar` VARCHAR(191) NULL,
+    `name` VARCHAR(191) NULL,
 
-  - The primary key for the `users` table will be changed. If it partially fails, the table could be left without primary key constraint.
-  - You are about to drop the column `profileId` on the `users` table. All the data in the column will be lost.
-  - You are about to drop the `Post` table. If the table is not empty, all the data it contains will be lost.
-  - You are about to drop the `Profile` table. If the table is not empty, all the data it contains will be lost.
+    UNIQUE INDEX `users_email_key`(`email`),
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
-*/
--- DropForeignKey
-ALTER TABLE `Post` DROP FOREIGN KEY `Post_userId_fkey`;
+-- CreateTable
+CREATE TABLE `tokens` (
+    `id` VARCHAR(191) NOT NULL,
+    `userId` VARCHAR(191) NOT NULL,
+    `refreshToken` VARCHAR(191) NOT NULL,
+    `expiresAt` DATETIME(3) NOT NULL,
+    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `updatedAt` DATETIME(3) NOT NULL,
 
--- DropForeignKey
-ALTER TABLE `Profile` DROP FOREIGN KEY `Profile_userId_fkey`;
-
--- DropForeignKey
-ALTER TABLE `tokens` DROP FOREIGN KEY `tokens_userId_fkey`;
-
--- AlterTable
-ALTER TABLE `tokens` MODIFY `userId` VARCHAR(191) NOT NULL;
-
--- AlterTable
-ALTER TABLE `users` DROP PRIMARY KEY,
-    DROP COLUMN `profileId`,
-    MODIFY `id` VARCHAR(191) NOT NULL,
-    ADD PRIMARY KEY (`id`);
-
--- DropTable
-DROP TABLE `Post`;
-
--- DropTable
-DROP TABLE `Profile`;
+    INDEX `tokens_userId_fkey`(`userId`),
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
 CREATE TABLE `Engineer` (
@@ -39,6 +34,8 @@ CREATE TABLE `Engineer` (
     `phone` VARCHAR(191) NOT NULL,
     `bank_name` VARCHAR(191) NULL,
     `bank_number` VARCHAR(191) NULL,
+    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `updatedAt` DATETIME(3) NOT NULL,
 
     UNIQUE INDEX `Engineer_id_key`(`id`),
     PRIMARY KEY (`id`)
@@ -52,6 +49,8 @@ CREATE TABLE `Foreman` (
     `phone` VARCHAR(191) NOT NULL,
     `bank_name` VARCHAR(191) NULL,
     `bank_number` VARCHAR(191) NULL,
+    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `updatedAt` DATETIME(3) NOT NULL,
 
     UNIQUE INDEX `Foreman_id_key`(`id`),
     PRIMARY KEY (`id`)
@@ -66,6 +65,8 @@ CREATE TABLE `Supplier` (
     `company` VARCHAR(191) NULL,
     `bank_name` VARCHAR(191) NULL,
     `bank_number` VARCHAR(191) NULL,
+    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `updatedAt` DATETIME(3) NOT NULL,
 
     UNIQUE INDEX `Supplier_id_key`(`id`),
     PRIMARY KEY (`id`)
@@ -79,6 +80,8 @@ CREATE TABLE `Customer` (
     `phone` VARCHAR(191) NOT NULL,
     `bank_name` VARCHAR(191) NULL,
     `bank_number` VARCHAR(191) NULL,
+    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `updatedAt` DATETIME(3) NOT NULL,
 
     UNIQUE INDEX `Customer_id_key`(`id`),
     PRIMARY KEY (`id`)
@@ -104,13 +107,16 @@ CREATE TABLE `Car` (
     `model` VARCHAR(191) NOT NULL,
     `plat_number` VARCHAR(191) NOT NULL,
     `color` VARCHAR(191) NOT NULL,
-    `mileage` BIGINT NULL,
-    `chassis_number` BIGINT NULL,
-    `engine_number` BIGINT NULL,
+    `mileage` DOUBLE NULL,
+    `chassis_number` VARCHAR(191) NULL,
+    `engine_number` VARCHAR(191) NULL,
     `customerId` VARCHAR(191) NOT NULL,
+    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `updatedAt` DATETIME(3) NOT NULL,
 
     UNIQUE INDEX `Car_id_key`(`id`),
     UNIQUE INDEX `Car_plat_number_key`(`plat_number`),
+    INDEX `Car_customerId_fkey`(`customerId`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -121,16 +127,18 @@ CREATE TABLE `Products` (
     `name` VARCHAR(191) NOT NULL,
     `brand` VARCHAR(191) NULL,
     `location` VARCHAR(191) NOT NULL,
-    `purchase_price` BIGINT NOT NULL,
-    `selling_price` BIGINT NOT NULL,
+    `purchase_price` DOUBLE NOT NULL,
+    `selling_price` DOUBLE NOT NULL,
     `product_type` ENUM('MATERIAL', 'OIL', 'SPAREPART', 'SUBLET') NOT NULL,
-    `stock` BIGINT NOT NULL,
+    `stock` DOUBLE NOT NULL,
     `min_stock_alert` INTEGER NOT NULL,
-    `supplierId` VARCHAR(191) NOT NULL,
-    `serviceInvoicesId` VARCHAR(191) NULL,
+    `supplierId` VARCHAR(191) NULL,
+    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `updatedAt` DATETIME(3) NOT NULL,
 
     UNIQUE INDEX `Products_id_key`(`id`),
     UNIQUE INDEX `Products_code_key`(`code`),
+    INDEX `Products_supplierId_fkey`(`supplierId`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -140,9 +148,10 @@ CREATE TABLE `Services` (
     `code` VARCHAR(191) NOT NULL,
     `name` VARCHAR(191) NOT NULL,
     `description` VARCHAR(191) NULL,
-    `cost` BIGINT NOT NULL,
-    `engineer_payment` BIGINT NULL,
-    `serviceInvoicesId` VARCHAR(191) NULL,
+    `cost` DOUBLE NOT NULL,
+    `engineer_payment` DOUBLE NULL,
+    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `updatedAt` DATETIME(3) NOT NULL,
 
     UNIQUE INDEX `Services_id_key`(`id`),
     UNIQUE INDEX `Services_code_key`(`code`),
@@ -153,14 +162,20 @@ CREATE TABLE `Services` (
 CREATE TABLE `SellProducts` (
     `id` VARCHAR(191) NOT NULL,
     `qty` INTEGER NOT NULL,
-    `selling_price` BIGINT NOT NULL,
+    `selling_price` DOUBLE NOT NULL,
     `is_guarantee` BOOLEAN NULL DEFAULT false,
-    `discount` BIGINT NULL,
+    `discount` DOUBLE NULL,
     `productId` VARCHAR(191) NOT NULL,
-    `customerId` VARCHAR(191) NOT NULL,
+    `customerId` VARCHAR(191) NULL,
+    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `updatedAt` DATETIME(3) NOT NULL,
     `productInvoicesId` VARCHAR(191) NULL,
+    `serviceInvoicesId` VARCHAR(191) NULL,
 
     UNIQUE INDEX `SellProducts_id_key`(`id`),
+    INDEX `SellProducts_customerId_fkey`(`customerId`),
+    INDEX `SellProducts_productId_fkey`(`productId`),
+    INDEX `SellProducts_productInvoicesId_fkey`(`productInvoicesId`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -172,10 +187,13 @@ CREATE TABLE `ProductInvoices` (
     `payment_date` DATETIME(3) NULL,
     `transfer_detail` VARCHAR(191) NULL,
     `payment_method` ENUM('CASH', 'TRANSFER', 'DEBIT') NULL,
-    `payment_status` ENUM('PAID', 'WAITING', 'DEB') NULL DEFAULT 'WAITING',
+    `payment_status` ENUM('PAID', 'WAITING', 'DEBT') NULL DEFAULT 'WAITING',
     `tax` INTEGER NULL,
-    `paid_amount` BIGINT NULL,
-    `paid_total` BIGINT NULL,
+    `paid_amount` DOUBLE NULL,
+    `discount` DOUBLE NULL,
+    `paid_total` DOUBLE NULL,
+    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `updatedAt` DATETIME(3) NOT NULL,
 
     UNIQUE INDEX `ProductInvoices_id_key`(`id`),
     UNIQUE INDEX `ProductInvoices_invoice_code_key`(`invoice_code`),
@@ -185,14 +203,19 @@ CREATE TABLE `ProductInvoices` (
 -- CreateTable
 CREATE TABLE `SellServices` (
     `id` VARCHAR(191) NOT NULL,
-    `discount` BIGINT NULL,
-    `cost` BIGINT NOT NULL,
-    `total_cost` BIGINT NULL,
+    `discount` DOUBLE NULL,
+    `cost` DOUBLE NOT NULL,
+    `total_cost` DOUBLE NULL,
     `servicesId` VARCHAR(191) NULL,
     `engineerId` VARCHAR(191) NULL,
     `serviceInvoicesId` VARCHAR(191) NULL,
+    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `updatedAt` DATETIME(3) NOT NULL,
 
     UNIQUE INDEX `SellServices_id_key`(`id`),
+    INDEX `SellServices_engineerId_fkey`(`engineerId`),
+    INDEX `SellServices_serviceInvoicesId_fkey`(`serviceInvoicesId`),
+    INDEX `SellServices_servicesId_fkey`(`servicesId`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -205,24 +228,29 @@ CREATE TABLE `ServiceInvoices` (
     `request_job` JSON NULL,
     `carId` VARCHAR(191) NULL,
     `status` ENUM('QUEUE', 'PROGRESS', 'PENDING', 'CLOSE', 'QCPASSED', 'DONE') NULL DEFAULT 'QUEUE',
-    `cost_service` BIGINT NULL,
-    `cost_product` BIGINT NULL,
+    `cost_service` DOUBLE NULL,
+    `cost_product` DOUBLE NULL,
     `transaction_type` ENUM('EXTERNAL', 'INTERNAL', 'GUARANTEE') NULL,
-    `tax` BIGINT NULL,
+    `tax` DOUBLE NULL,
     `work_order_number` VARCHAR(191) NOT NULL,
     `transfer_detail` VARCHAR(191) NULL,
     `payment_date` DATETIME(3) NULL,
     `payment_method` ENUM('CASH', 'TRANSFER', 'DEBIT') NULL DEFAULT 'CASH',
-    `payment_status` ENUM('PAID', 'WAITING', 'DEB') NULL DEFAULT 'WAITING',
+    `payment_status` ENUM('PAID', 'WAITING', 'DEBT') NULL DEFAULT 'WAITING',
     `stay` BOOLEAN NULL DEFAULT false,
     `number_queue` INTEGER NULL,
-    `paid_total` BIGINT NULL,
-    `paid_amount` BIGINT NULL,
+    `paid_total` DOUBLE NULL,
+    `paid_amount` DOUBLE NULL,
     `foremanId` VARCHAR(191) NULL,
     `customerId` VARCHAR(191) NULL,
+    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `updatedAt` DATETIME(3) NOT NULL,
 
     UNIQUE INDEX `ServiceInvoices_id_key`(`id`),
     UNIQUE INDEX `ServiceInvoices_work_order_number_key`(`work_order_number`),
+    INDEX `ServiceInvoices_carId_fkey`(`carId`),
+    INDEX `ServiceInvoices_customerId_fkey`(`customerId`),
+    INDEX `ServiceInvoices_foremanId_fkey`(`foremanId`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -230,28 +258,22 @@ CREATE TABLE `ServiceInvoices` (
 ALTER TABLE `tokens` ADD CONSTRAINT `tokens_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `users`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `Car` ADD CONSTRAINT `Car_customerId_fkey` FOREIGN KEY (`customerId`) REFERENCES `Customer`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE `Car` ADD CONSTRAINT `Car_customerId_fkey` FOREIGN KEY (`customerId`) REFERENCES `Customer`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `Products` ADD CONSTRAINT `Products_supplierId_fkey` FOREIGN KEY (`supplierId`) REFERENCES `Supplier`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE `Products` ADD CONSTRAINT `Products_supplierId_fkey` FOREIGN KEY (`supplierId`) REFERENCES `Supplier`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `Products` ADD CONSTRAINT `Products_serviceInvoicesId_fkey` FOREIGN KEY (`serviceInvoicesId`) REFERENCES `ServiceInvoices`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE `SellProducts` ADD CONSTRAINT `SellProducts_customerId_fkey` FOREIGN KEY (`customerId`) REFERENCES `Customer`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `Services` ADD CONSTRAINT `Services_serviceInvoicesId_fkey` FOREIGN KEY (`serviceInvoicesId`) REFERENCES `ServiceInvoices`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE `SellProducts` ADD CONSTRAINT `SellProducts_productId_fkey` FOREIGN KEY (`productId`) REFERENCES `Products`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE `SellProducts` ADD CONSTRAINT `SellProducts_customerId_fkey` FOREIGN KEY (`customerId`) REFERENCES `Customer`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE `SellProducts` ADD CONSTRAINT `SellProducts_productId_fkey` FOREIGN KEY (`productId`) REFERENCES `Products`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `SellProducts` ADD CONSTRAINT `SellProducts_productInvoicesId_fkey` FOREIGN KEY (`productInvoicesId`) REFERENCES `ProductInvoices`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `SellServices` ADD CONSTRAINT `SellServices_servicesId_fkey` FOREIGN KEY (`servicesId`) REFERENCES `Services`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE `SellProducts` ADD CONSTRAINT `SellProducts_serviceInvoicesId_fkey` FOREIGN KEY (`serviceInvoicesId`) REFERENCES `ServiceInvoices`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `SellServices` ADD CONSTRAINT `SellServices_engineerId_fkey` FOREIGN KEY (`engineerId`) REFERENCES `Engineer`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
@@ -260,10 +282,13 @@ ALTER TABLE `SellServices` ADD CONSTRAINT `SellServices_engineerId_fkey` FOREIGN
 ALTER TABLE `SellServices` ADD CONSTRAINT `SellServices_serviceInvoicesId_fkey` FOREIGN KEY (`serviceInvoicesId`) REFERENCES `ServiceInvoices`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE `SellServices` ADD CONSTRAINT `SellServices_servicesId_fkey` FOREIGN KEY (`servicesId`) REFERENCES `Services`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE `ServiceInvoices` ADD CONSTRAINT `ServiceInvoices_carId_fkey` FOREIGN KEY (`carId`) REFERENCES `Car`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `ServiceInvoices` ADD CONSTRAINT `ServiceInvoices_foremanId_fkey` FOREIGN KEY (`foremanId`) REFERENCES `Foreman`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE `ServiceInvoices` ADD CONSTRAINT `ServiceInvoices_customerId_fkey` FOREIGN KEY (`customerId`) REFERENCES `Customer`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `ServiceInvoices` ADD CONSTRAINT `ServiceInvoices_customerId_fkey` FOREIGN KEY (`customerId`) REFERENCES `Customer`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE `ServiceInvoices` ADD CONSTRAINT `ServiceInvoices_foremanId_fkey` FOREIGN KEY (`foremanId`) REFERENCES `Foreman`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;

@@ -60,7 +60,7 @@ export class SupplierController {
 
     return this.supplierService.findAll({
       page,
-      orderBy: { [orderBy]: sort } || { id: 'asc' },
+      orderBy: orderBy ? { [orderBy]: sort } : { createdAt: 'desc' },
       where: where as Prisma.SupplierWhereInput,
       perPage,
       include,

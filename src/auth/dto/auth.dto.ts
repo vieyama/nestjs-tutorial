@@ -9,6 +9,11 @@ export class AuthBody {
   @IsString()
   email: string;
 
+  @IsNotEmpty()
+  @IsString()
+  @IsOptional()
+  name?: string;
+
   @ApiProperty()
   @IsNotEmpty()
   @IsString()

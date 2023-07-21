@@ -1,3 +1,4 @@
+import { Roles } from './../auth/decorator/roles.decorator';
 import { RoleGuard } from 'src/auth/guards/roles.guard';
 import { Prisma, User } from '@prisma/client';
 import {
@@ -23,6 +24,7 @@ import * as argon from 'argon2';
 import { ApiBearerAuth } from '@nestjs/swagger';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
+import { AuthBody } from 'src/auth/dto/auth.dto';
 
 @ApiBearerAuth()
 @Controller('user')
@@ -42,9 +44,7 @@ export class UserController {
       ? {
           OR: [
             { name: { contains: searchString } },
-            { address: { contains: searchString } },
-            { phone: { contains: searchString } },
-            { bank_number: { contains: searchString } },
+            { email: { contains: searchString } },
           ],
         }
       : {};
@@ -54,7 +54,7 @@ export class UserController {
 
     return this.userService.getAll({
       page,
-      orderBy: { [orderBy]: sort } || { id: 'asc' },
+      orderBy: orderBy ? { [orderBy]: sort } : { createdAt: 'desc' },
       where: where as Prisma.UserWhereInput,
       perPage,
     });
@@ -62,12 +62,10 @@ export class UserController {
 
   @Post('upload/:user_id')
   @UseInterceptors(
-    FileInterceptor('file', {
+    FileInterceptor('avatar', {
       storage: diskStorage({
-        destination: 'public/img',
+        destination: 'public/avatar',
         filename: (req, file, cb) => {
-          console.log(req.params.user_id);
-
           cb(null, `${req.params.user_id}-${file.originalname}`);
         },
       }),
@@ -76,8 +74,32 @@ export class UserController {
   async local(@UploadedFile() file: Express.Multer.File) {
     return {
       statusCode: 200,
-      data: file.path,
+      url: file.path,
+      fileName: file.filename,
     };
+  }
+
+  @Post('check-password/:user_id')
+  async checkPassword(
+    @Param('user_id') id: string,
+    @Body() checkBody: { password: string },
+  ) {
+    const user = await this.userService.getById(id);
+    const isMatch = await argon.verify(user.password, checkBody.password);
+    return {
+      verification: isMatch,
+    };
+  }
+
+  @Roles('SUPERADMIN')
+  @Post()
+  async insertAdmin(@Body() userCreate: AuthBody) {
+    const password = await argon.hash(userCreate.password as string);
+
+    return this.userService.create({
+      ...userCreate,
+      password,
+    });
   }
 
   @Get(':id')
@@ -88,12 +110,10 @@ export class UserController {
   @Patch(':id')
   async update(
     @Param('id') id: string,
-    @Body() userUpdate: Prisma.UserCreateInput,
+    @Body() userUpdate: Prisma.UserUpdateInput,
   ) {
-    console.log(userUpdate);
-
     const password = userUpdate.password
-      ? await argon.hash(userUpdate.password)
+      ? await argon.hash(userUpdate.password as string)
       : undefined;
 
     return this.userService.update(id, {
@@ -102,6 +122,7 @@ export class UserController {
     });
   }
 
+  @Roles('SUPERADMIN')
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.userService.remove(id);

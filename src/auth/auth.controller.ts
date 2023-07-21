@@ -34,7 +34,6 @@ export class AuthController {
   @HttpCode(200)
   async signOut(@Req() request: IRequestWithUser) {
     const tokenId = request.header('Token-Id');
-    console.log(tokenId);
 
     await this.authService.signOut(tokenId);
   }

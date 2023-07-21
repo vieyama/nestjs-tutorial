@@ -59,7 +59,7 @@ export class ForemanController {
 
     return this.foremanService.findAll({
       page,
-      orderBy: { [orderBy]: sort } || { id: 'asc' },
+      orderBy: orderBy ? { [orderBy]: sort } : { createdAt: 'desc' },
       where: where as Prisma.ForemanWhereInput,
       perPage,
       include,
