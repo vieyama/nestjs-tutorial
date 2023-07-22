@@ -1,7 +1,12 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
+import { Prisma, SellProducts } from '@prisma/client';
 import { omit } from 'lodash';
 import { PrismaService } from 'src/prisma/prisma.service';
+import {
+  PaginateFunction,
+  PaginatedResult,
+  paginator,
+} from 'src/utils/paginator';
 
 @Injectable()
 export class ProductSellingService {
@@ -93,5 +98,34 @@ export class ProductSellingService {
       console.log(error);
       throw new HttpException('Something went wrong', HttpStatus.BAD_GATEWAY);
     }
+  }
+
+  async getAll(params: {
+    page?: number;
+    orderBy?: Prisma.ProductsOrderByWithRelationInput;
+    where?: Prisma.ProductsWhereInput;
+    perPage?: number;
+    include?: object;
+  }): Promise<PaginatedResult<SellProducts>> {
+    const { page, where, orderBy, perPage } = params;
+
+    const paginate: PaginateFunction = paginator({ perPage: perPage || 10 });
+
+    return paginate(
+      this.prismaService.sellProducts,
+      {
+        where,
+        orderBy,
+      },
+      {
+        page,
+        include: {
+          customer: true,
+          product: true,
+          productInvoices: true,
+          serviceInvoices: true,
+        },
+      },
+    );
   }
 }
