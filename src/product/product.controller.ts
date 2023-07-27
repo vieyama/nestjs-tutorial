@@ -14,6 +14,7 @@ import { Prisma, ProductType, Products } from '@prisma/client';
 import { ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from 'src/auth/guards/jwt.guard';
 import { PaginatedResult } from 'src/utils/paginator';
+import * as dayjs from 'dayjs';
 
 @ApiBearerAuth()
 @Controller('product')
@@ -36,6 +37,22 @@ export class ProductController {
     return this.productService.updateMany(updateProducts);
   }
 
+  @Get('report')
+  findDataReport(
+    @Query('start-date') startDate?: string,
+    @Query('end-date') endDate?: string,
+  ) {
+    const dateAddDay = dayjs(endDate).add(1, 'day');
+    const startDateFilter = startDate
+      ? new Date(startDate).toISOString()
+      : undefined;
+
+    const endDateFilter = endDate
+      ? new Date(dateAddDay.format('YYYY-MM-DD')).toISOString()
+      : undefined;
+
+    return this.productService.getReportData(startDateFilter, endDateFilter);
+  }
   @Get()
   findAll(
     @Query('page') page?: number,

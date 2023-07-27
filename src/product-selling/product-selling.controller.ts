@@ -39,7 +39,7 @@ export class ProductSellingController {
     @Query('payment-status') paymentStatus?: PaymentStatus,
     @Query('sort') sort?: 'asc' | 'desc',
     @Query('guarantee') guarantee?: boolean,
-    @Query('product-only') productOnly?: boolean,
+    @Query('product-service') productOnly?: boolean,
   ): Promise<PaginatedResult<SellProducts>> {
     const dateAddDay = dayjs(endDate).add(1, 'day');
     const startDateFilter = startDate
@@ -63,21 +63,18 @@ export class ProductSellingController {
         ...(!!guarantee && {
           is_guarantee: true,
         }),
-        ...(!!productOnly && {
-          NOT: {
-            productInvoicesId: null,
-          },
-        }),
-        ...(!productOnly && {
+        ...(!!productOnly === true && {
           NOT: {
             serviceInvoicesId: null,
           },
         }),
+
         OR: [
           { productInvoices: { invoice_code: { contains: searchString } } },
           { serviceInvoices: { invoice_code: { contains: searchString } } },
           { customer: { name: { contains: searchString } } },
           { product: { name: { contains: searchString } } },
+          { product: { code: { contains: searchString } } },
         ],
         ...(paymentStatus && {
           payment_status: {
