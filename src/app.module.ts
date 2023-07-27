@@ -5,7 +5,7 @@ import { AuthModule } from './auth/auth.module';
 import { UserModule } from './user/user.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
-
+import { ScheduleModule } from '@nestjs/schedule';
 import { SettingModule } from './setting/setting.module';
 import { CustomerModule } from './customer/customer.module';
 import { SupplierModule } from './supplier/supplier.module';
@@ -18,12 +18,14 @@ import { ProductTransactionModule } from './product-transaction/product-transact
 import { ProductSellingModule } from './product-selling/product-selling.module';
 import { ServiceSellingModule } from './service-selling/service-selling.module';
 import { ServiceTransactionModule } from './service-transaction/service-transaction.module';
+import { CronjobsModule } from './cronjobs/cronjobs.module';
 
 @Module({
   imports: [
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..'),
     }),
+    ScheduleModule.forRoot(),
     AuthModule,
     UserModule,
     PrismaModule,
@@ -42,6 +44,7 @@ import { ServiceTransactionModule } from './service-transaction/service-transact
     ProductSellingModule,
     ServiceSellingModule,
     ServiceTransactionModule,
+    CronjobsModule,
   ],
   controllers: [],
   providers: [],

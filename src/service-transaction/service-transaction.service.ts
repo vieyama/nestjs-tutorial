@@ -144,4 +144,28 @@ export class ServiceTransactionService {
       throw new HttpException('Something went wrong', HttpStatus.BAD_GATEWAY);
     }
   }
+
+  async findAll(params: {
+    page?: number;
+    orderBy?: Prisma.ProductsOrderByWithRelationInput;
+    where?: Prisma.ProductsWhereInput;
+    perPage?: number;
+    include?: object;
+  }): Promise<PaginatedResult<ServiceInvoices>> {
+    const { page, where, orderBy, perPage } = params;
+
+    const paginate: PaginateFunction = paginator({ perPage: perPage || 10 });
+
+    return paginate(
+      this.prismaService.serviceInvoices,
+      {
+        where,
+        orderBy,
+      },
+      {
+        page,
+        include,
+      },
+    );
+  }
 }

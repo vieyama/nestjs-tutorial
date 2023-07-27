@@ -148,4 +148,71 @@ export class ProductService {
       throw new HttpException('Something went wrong', HttpStatus.BAD_GATEWAY);
     }
   }
+
+  async getReportData(startDateFilter: string, endDateFilter: string) {
+    const [product, productInvoice] = await this.prismaService.$transaction([
+      this.prismaService.products.findMany({
+        include: {
+          SellProducts: {
+            select: {
+              id: true,
+              qty: true,
+              selling_price: true,
+              is_guarantee: true,
+              discount: true,
+              productId: true,
+              customerId: true,
+              createdAt: true,
+              updatedAt: true,
+              customer: true,
+              productInvoices: true,
+              productInvoicesId: true,
+              serviceInvoices: true,
+              serviceInvoicesId: true,
+            },
+          },
+        },
+        where: {
+          SellProducts: {
+            every: {
+              createdAt: {
+                gte: startDateFilter,
+                lte: endDateFilter,
+              },
+            },
+          },
+        },
+      }),
+      this.prismaService.productInvoices.findMany({
+        where: {
+          transaction_date: {
+            gte: startDateFilter,
+            lte: endDateFilter,
+          },
+        },
+        include: {
+          SellProducts: {
+            select: {
+              id: true,
+              qty: true,
+              selling_price: true,
+              is_guarantee: true,
+              discount: true,
+              productId: true,
+              product: true,
+            },
+          },
+        },
+      }),
+    ]);
+    const result = product.filter((item) => item.SellProducts.length > 0);
+
+    return {
+      data: {
+        product: result,
+        productInvoice,
+      },
+      count: result.length,
+    };
+  }
 }

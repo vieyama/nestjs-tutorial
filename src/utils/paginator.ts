@@ -29,6 +29,7 @@ export const paginator = (
 ): PaginateFunction => {
   return async (model, args: any = { where: undefined }, options) => {
     const page = Number(options?.page || defaultOptions?.page) || 1;
+
     const perPage = Number(options?.perPage || defaultOptions?.perPage) || 10;
     const include = options?.include;
     const select = options?.select;
@@ -42,8 +43,8 @@ export const paginator = (
         ...(include && { include }),
         ...(select && { select }),
         where: args.where,
-        take: perPage,
-        skip,
+        ...(!!options?.page && { take: perPage }),
+        ...(!!options?.perPage && { skip }),
       }),
     ]);
     const lastPage = Math.ceil(total / perPage);
@@ -62,7 +63,7 @@ export const paginator = (
         total,
         lastPage,
         currentPage: page,
-        perPage,
+        ...(!!options?.perPage && { perPage }),
         prev: page > 1 ? page - 1 : null,
         next: page < lastPage ? page + 1 : null,
       },
