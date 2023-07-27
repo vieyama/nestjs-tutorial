@@ -9,6 +9,7 @@ async function bootstrap() {
     'http://localhost:3000',
     'http://localhost:3001',
     'http://localhost:8000/api',
+    'https://bengkel-io.vercel.app',
   ];
 
   const app = await NestFactory.create(AppModule);
