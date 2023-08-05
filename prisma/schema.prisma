@@ -59,16 +59,17 @@ model Foreman {
 }
 
 model Supplier {
-  id          String     @id @unique @default(uuid())
-  name        String
-  address     String?
-  phone       String
-  company     String?
-  bank_name   String?
-  bank_number String?
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
-  Products    Products[]
+  id               String             @id @unique @default(uuid())
+  name             String
+  address          String?
+  phone            String
+  company          String?
+  bank_name        String?
+  bank_number      String?
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+  Products         Products[]
+  PurchaseProducts PurchaseProducts[]
 }
 
 model Customer {
@@ -113,21 +114,22 @@ model Car {
 }
 
 model Products {
-  id              String         @id @unique @default(uuid())
-  code            String         @unique
-  name            String
-  brand           String?
-  location        String
-  purchase_price  Float
-  selling_price   Float
-  product_type    ProductType
-  stock           Float
-  min_stock_alert Int
-  supplierId      String?
-  createdAt       DateTime       @default(now())
-  updatedAt       DateTime       @updatedAt
-  supplier        Supplier?      @relation(fields: [supplierId], references: [id], onDelete: Cascade)
-  SellProducts    SellProducts[]
+  id               String             @id @unique @default(uuid())
+  code             String             @unique
+  name             String
+  brand            String?
+  location         String
+  purchase_price   Float
+  selling_price    Float
+  product_type     ProductType
+  stock            Float
+  min_stock_alert  Int
+  supplierId       String?
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+  supplier         Supplier?          @relation(fields: [supplierId], references: [id], onDelete: Cascade)
+  SellProducts     SellProducts[]
+  PurchaseProducts PurchaseProducts[]
 
   @@index([supplierId], map: "Products_supplierId_fkey")
 }
@@ -236,6 +238,23 @@ model ServiceInvoices {
   @@index([carId], map: "ServiceInvoices_carId_fkey")
   @@index([customerId], map: "ServiceInvoices_customerId_fkey")
   @@index([foremanId], map: "ServiceInvoices_foremanId_fkey")
+}
+
+model PurchaseProducts {
+  id              String        @id @unique @default(uuid())
+  invoice_code    String
+  purchase_date   DateTime
+  qty             Int
+  purchase_price  Float
+  payment_method  PaymentMethod
+  payment_status  PaymentStatus
+  transfer_detail String?
+  productId       String
+  supplierId      String
+  product         Products      @relation(fields: [productId], references: [id])
+  supplier        Supplier      @relation(fields: [supplierId], references: [id])
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
 }
 
 enum Role {

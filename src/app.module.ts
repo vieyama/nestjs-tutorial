@@ -19,6 +19,8 @@ import { ProductSellingModule } from './product-selling/product-selling.module';
 import { ServiceSellingModule } from './service-selling/service-selling.module';
 import { ServiceTransactionModule } from './service-transaction/service-transaction.module';
 import { CronjobsModule } from './cronjobs/cronjobs.module';
+import { PurchaseProductModule } from './purchase-product/purchase-product.module';
+import { AnalyticModule } from './analytic/analytic.module';
 
 @Module({
   imports: [
@@ -45,6 +47,8 @@ import { CronjobsModule } from './cronjobs/cronjobs.module';
     ServiceSellingModule,
     ServiceTransactionModule,
     CronjobsModule,
+    PurchaseProductModule,
+    AnalyticModule,
   ],
   controllers: [],
   providers: [],
