@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { sum } from 'lodash';
 import { PrismaService } from 'src/prisma/prisma.service';
 
@@ -40,13 +41,23 @@ export class AnalyticService {
 
     const totalServiceQuery = this.prismaService.serviceInvoices.count();
 
-    const [selledProduct, selledService, totalService, purchaseProduct] =
-      await this.prismaService.$transaction([
-        selledProductQuery,
-        selledServiceQuery,
-        totalServiceQuery,
-        purchaseProductQuery,
-      ]);
+    const stockAlertQuery = this.prismaService.$queryRaw(
+      Prisma.sql`SELECT * FROM products WHERE stock <= min_stock_alert ORDER BY stock ASC`,
+    );
+
+    const [
+      selledProduct,
+      selledService,
+      totalService,
+      purchaseProduct,
+      stockAlert,
+    ] = await this.prismaService.$transaction([
+      selledProductQuery,
+      selledServiceQuery,
+      totalServiceQuery,
+      purchaseProductQuery,
+      stockAlertQuery,
+    ]);
 
     const totalSelledProduct = sum(
       selledProduct
@@ -95,6 +106,7 @@ export class AnalyticService {
           totalIncomeService,
         totalTax: totalProductTax + totalServiceTax,
         totalPurchase,
+        stockAlert,
       },
     };
   }
