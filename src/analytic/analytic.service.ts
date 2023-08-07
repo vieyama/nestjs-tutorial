@@ -42,7 +42,7 @@ export class AnalyticService {
     const totalServiceQuery = this.prismaService.serviceInvoices.count();
 
     const stockAlertQuery = this.prismaService.$queryRaw(
-      Prisma.sql`SELECT * FROM products WHERE stock <= min_stock_alert ORDER BY stock ASC`,
+      Prisma.sql`SELECT * FROM Products WHERE stock <= min_stock_alert ORDER BY stock ASC`,
     );
 
     const [
