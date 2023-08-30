@@ -58,10 +58,10 @@ export class ProductService {
     const promises = [];
 
     try {
-      for (let i = 0; i < updateProducts.length; i++) {
+      for (const element of updateProducts) {
         const recordProduct = this.prismaService.products.update({
-          where: { id: updateProducts[i].id as string },
-          data: omit(updateProducts[i], 'id'),
+          where: { id: element.id as string },
+          data: omit(element, 'id'),
         });
         // add the promise to the promises array
         promises.push(recordProduct);
@@ -98,6 +98,7 @@ export class ProductService {
       },
       {
         page,
+        perPage,
         include,
       },
     );

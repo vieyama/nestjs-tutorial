@@ -135,7 +135,7 @@ export class AuthService {
         status: HttpStatus.OK,
       };
     } catch (error) {
-      throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST);
+      throw new HttpException(error, HttpStatus.BAD_REQUEST);
     }
   }
 

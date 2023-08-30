@@ -30,7 +30,7 @@ export class CarService {
       };
     } catch (error) {
       console.log(error);
-      throw new HttpException('Something went wrong', HttpStatus.BAD_GATEWAY);
+      throw new HttpException(error, HttpStatus.BAD_GATEWAY);
     }
   }
 

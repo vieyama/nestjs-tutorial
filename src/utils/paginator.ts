@@ -35,18 +35,21 @@ export const paginator = (
     const select = options?.select;
 
     const skip = page > 0 ? perPage * (page - 1) : 0;
-
+    console.log(options);
+    const getOptions = {
+      ...args,
+      ...(include && { include }),
+      ...(select && { select }),
+      where: args.where,
+      ...(!!options?.page && { take: perPage }),
+      ...(!!options?.perPage && { skip }),
+    };
     const [total, data] = await Promise.all([
       model.count({ where: args.where }),
-      model.findMany({
-        ...args,
-        ...(include && { include }),
-        ...(select && { select }),
-        where: args.where,
-        ...(!!options?.page && { take: perPage }),
-        ...(!!options?.perPage && { skip }),
-      }),
+      model.findMany(getOptions),
     ]);
+    console.log(getOptions);
+
     const lastPage = Math.ceil(total / perPage);
 
     let result = data;
