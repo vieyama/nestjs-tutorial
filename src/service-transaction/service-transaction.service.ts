@@ -148,13 +148,21 @@ export class ServiceTransactionService {
   async findAll(params: {
     page?: number;
     orderBy?: Prisma.ProductsOrderByWithRelationInput;
-    where?: Prisma.ProductsWhereInput;
+    where?: Prisma.ServiceInvoicesWhereInput;
     perPage?: number;
     include?: object;
   }): Promise<PaginatedResult<ServiceInvoices>> {
     const { page, where, orderBy, perPage } = params;
+    console.log(orderBy);
 
     const paginate: PaginateFunction = paginator({ perPage: perPage || 10 });
+    const dada = await this.prismaService.serviceInvoices.findMany({
+      where,
+      orderBy: {
+        number_queue: 'asc',
+      },
+    });
+    console.log(dada);
 
     return paginate(
       this.prismaService.serviceInvoices,

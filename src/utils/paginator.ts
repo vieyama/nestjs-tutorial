@@ -35,7 +35,6 @@ export const paginator = (
     const select = options?.select;
 
     const skip = page > 0 ? perPage * (page - 1) : 0;
-    console.log(options);
     const getOptions = {
       ...args,
       ...(include && { include }),
@@ -48,7 +47,6 @@ export const paginator = (
       model.count({ where: args.where }),
       model.findMany(getOptions),
     ]);
-    console.log(getOptions);
 
     const lastPage = Math.ceil(total / perPage);
 

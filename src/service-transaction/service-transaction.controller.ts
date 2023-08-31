@@ -119,7 +119,126 @@ export class ServiceTransactionController {
     return this.serviceTransactionService.findAll({
       page,
       orderBy: orderBy ? { [orderBy]: sort } : { createdAt: 'desc' },
-      where: where as Prisma.ProductsWhereInput,
+      where: where as Prisma.ServiceInvoicesWhereInput,
+      perPage,
+      include,
+    });
+  }
+
+  @Get('today')
+  findToday(
+    @Query('page') page?: number,
+    @Query('search') searchString?: string,
+    @Query('orderBy') orderBy?: string,
+    @Query('perPage') perPage?: number,
+    @Query('payment-method') paymentMethod?: PaymentMethod,
+    @Query('payment-status') paymentStatus?: PaymentStatus,
+    @Query('sort') sort?: 'asc' | 'desc',
+  ): Promise<PaginatedResult<ServiceInvoices>> {
+    const include = {
+      SellProducts: true,
+    };
+    const startDate = dayjs().format('YYYY-MM-DD');
+    const endDate = dayjs().format('YYYY-MM-DD');
+
+    const dateAddDay = dayjs(endDate).add(1, 'day');
+    const startDateFilter = startDate
+      ? new Date(startDate).toISOString()
+      : undefined;
+
+    const endDateFilter = endDate
+      ? new Date(dateAddDay.format('YYYY-MM-DD')).toISOString()
+      : undefined;
+
+    const where = {
+      AND: {
+        date_in: {
+          gte: startDateFilter,
+          lte: endDateFilter,
+        },
+        status: {
+          not: 'DONE',
+        },
+        stay: false,
+        ...(!!searchString && {
+          OR: [
+            { invoice_code: { contains: searchString } },
+            { work_order_number: { contains: searchString } },
+            { Customer: { name: { contains: searchString } } },
+            { car: { plat_number: { contains: searchString } } },
+          ],
+        }),
+        ...(paymentStatus && {
+          payment_status: {
+            equals: paymentStatus,
+          },
+        }),
+        ...(paymentMethod && {
+          payment_method: {
+            equals: paymentMethod,
+          },
+        }),
+      },
+    };
+
+    return this.serviceTransactionService.findAll({
+      page,
+      orderBy: orderBy ? { [orderBy]: sort } : { createdAt: 'desc' },
+      where: where as Prisma.ServiceInvoicesWhereInput,
+      perPage,
+      include,
+    });
+  }
+
+  @Get('booking')
+  findBooking(
+    @Query('page') page?: number,
+    @Query('search') searchString?: string,
+    @Query('orderBy') orderBy?: string,
+    @Query('perPage') perPage?: number,
+    @Query('payment-method') paymentMethod?: PaymentMethod,
+    @Query('payment-status') paymentStatus?: PaymentStatus,
+    @Query('sort') sort?: 'asc' | 'desc',
+  ): Promise<PaginatedResult<ServiceInvoices>> {
+    const include = {
+      SellProducts: true,
+    };
+    const today = new Date();
+
+    const where = {
+      AND: {
+        date_in: {
+          gte: today.toISOString(),
+        },
+        status: {
+          not: 'DONE',
+        },
+        stay: false,
+        ...(!!searchString && {
+          OR: [
+            { invoice_code: { contains: searchString } },
+            { work_order_number: { contains: searchString } },
+            { Customer: { name: { contains: searchString } } },
+            { car: { plat_number: { contains: searchString } } },
+          ],
+        }),
+        ...(paymentStatus && {
+          payment_status: {
+            equals: paymentStatus,
+          },
+        }),
+        ...(paymentMethod && {
+          payment_method: {
+            equals: paymentMethod,
+          },
+        }),
+      },
+    };
+
+    return this.serviceTransactionService.findAll({
+      page,
+      orderBy: orderBy ? { [orderBy]: sort } : { createdAt: 'desc' },
+      where: where as Prisma.ServiceInvoicesWhereInput,
       perPage,
       include,
     });
