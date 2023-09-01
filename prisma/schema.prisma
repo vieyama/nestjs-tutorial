@@ -207,9 +207,11 @@ model SellServices {
 model ServiceInvoices {
   id                String           @id @unique @default(uuid())
   invoice_code      String
+  estimation_code   String?
   date_in           DateTime?
   date_out          DateTime?
   request_job       Json?
+  remark            String?
   carId             String?
   status            StatusService?   @default(QUEUE)
   cost_service      Float?
