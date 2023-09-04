@@ -4,6 +4,7 @@ COPY package.json .
 COPY yarn.lock .
 
 RUN yarn install
+RUN apt-get update -y && apt-get install -y openssl
 COPY . .
 RUN npx prisma generate
 RUN yarn build
