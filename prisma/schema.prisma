@@ -3,8 +3,9 @@ generator client {
 }
 
 datasource db {
-  provider = "mysql"
-  url      = env("DATABASE_URL")
+  provider     = "mysql"
+  url          = env("DATABASE_URL")
+  relationMode = "prisma"
 }
 
 model User {
@@ -166,6 +167,7 @@ model SellProducts {
   @@index([customerId], map: "SellProducts_customerId_fkey")
   @@index([productId], map: "SellProducts_productId_fkey")
   @@index([productInvoicesId], map: "SellProducts_productInvoicesId_fkey")
+  @@index([serviceInvoicesId])
 }
 
 model ProductInvoices {
@@ -257,6 +259,9 @@ model PurchaseProducts {
   supplier        Supplier      @relation(fields: [supplierId], references: [id])
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
+
+  @@index([supplierId])
+  @@index([productId])
 }
 
 enum Role {
